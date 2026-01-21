@@ -99,7 +99,7 @@ public class AlertService {
      * @return Formatted statistics string
      */
     public String getStats() {
-        return String.format("Alerts created: %d, Deduplicated: %d, Cache size: %d",
+        return "Alerts created: %d, Deduplicated: %d, Cache size: %d".formatted(
             alertsCreated.get(), alertsDeduplicated.get(), recentAlerts.size());
     }
 
