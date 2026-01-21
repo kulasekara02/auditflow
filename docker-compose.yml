@@ -1,0 +1,106 @@
+version: "3.9"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: auditflow-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-auditflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-auditflow_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-auditflow}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-auditflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auditflow-network
+
+  # Redis for Event Streaming
+  redis:
+    image: redis:7-alpine
+    container_name: auditflow-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auditflow-network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: auditflow-api
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-auditflow}:${POSTGRES_PASSWORD:-auditflow_secret}@postgres:5432/${POSTGRES_DB:-auditflow}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - auditflow-network
+    restart: unless-stopped
+
+  # React Frontend
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    container_name: auditflow-ui
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - api
+    networks:
+      - auditflow-network
+    restart: unless-stopped
+
+  # Java Rule Engine
+  rule-engine:
+    build:
+      context: ./rule-engine
+      dockerfile: Dockerfile
+    container_name: auditflow-rule-engine
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-auditflow}
+      DATABASE_USER: ${POSTGRES_USER:-auditflow}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-auditflow_secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - auditflow-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  auditflow-network:
+    driver: bridge
