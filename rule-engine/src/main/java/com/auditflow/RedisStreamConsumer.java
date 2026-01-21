@@ -7,7 +7,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.StreamEntryID;
 import redis.clients.jedis.resps.StreamEntry;
-import redis.clients.jedis.params.XReadParams;
+import redis.clients.jedis.params.XReadGroupParams;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -95,7 +95,7 @@ public class RedisStreamConsumer {
                 Map<String, StreamEntryID> streams = new HashMap<>();
                 streams.put(STREAM_KEY, StreamEntryID.UNRECEIVED_ENTRY);
 
-                XReadParams params = new XReadParams()
+                XReadGroupParams params = new XReadGroupParams()
                         .count(BATCH_SIZE)
                         .block(BLOCK_TIMEOUT_MS);
 
@@ -175,7 +175,7 @@ public class RedisStreamConsumer {
             alertService.createAlert(
                 "Critical Event Detected",
                 "critical",
-                String.format("Critical %s event from %s: %s", eventType, source, message),
+                "Critical %s event from %s: %s".formatted(eventType, source, message),
                 eventId != null ? eventId.longValue() : null
             );
         }
@@ -186,7 +186,7 @@ public class RedisStreamConsumer {
             alertService.createAlert(
                 "Payment Failure",
                 "high",
-                String.format("Payment failure from %s: %s", source, message),
+                "Payment failure from %s: %s".formatted(source, message),
                 eventId != null ? eventId.longValue() : null
             );
         }
@@ -197,7 +197,7 @@ public class RedisStreamConsumer {
             alertService.createAlert(
                 "Failed Login Attempt",
                 "medium",
-                String.format("Failed login from %s: %s", source, message),
+                "Failed login from %s: %s".formatted(source, message),
                 eventId != null ? eventId.longValue() : null
             );
         }
@@ -207,7 +207,7 @@ public class RedisStreamConsumer {
             alertService.createAlert(
                 "Error Event",
                 "medium",
-                String.format("Error in %s from %s: %s", eventType, source, message),
+                "Error in %s from %s: %s".formatted(eventType, source, message),
                 eventId != null ? eventId.longValue() : null
             );
         }
@@ -222,7 +222,7 @@ public class RedisStreamConsumer {
             alertService.createAlert(
                 "Security Event",
                 level,
-                String.format("Security event %s from %s: %s", eventType, source, message),
+                "Security event %s from %s: %s".formatted(eventType, source, message),
                 eventId != null ? eventId.longValue() : null
             );
         }
@@ -235,7 +235,7 @@ public class RedisStreamConsumer {
             alertService.createAlert(
                 "Suspicious Data Access",
                 "high",
-                String.format("Data access alert from %s: %s", source, message),
+                "Data access alert from %s: %s".formatted(source, message),
                 eventId != null ? eventId.longValue() : null
             );
         }

@@ -154,12 +154,12 @@ public final class JsonUtil {
             return defaultValue;
         }
         Object value = map.get(key);
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
+        if (value instanceof Number number) {
+            return number.intValue();
         }
-        if (value instanceof String) {
+        if (value instanceof String string) {
             try {
-                return Integer.parseInt((String) value);
+                return Integer.parseInt(string);
             } catch (NumberFormatException e) {
                 return defaultValue;
             }
@@ -180,12 +180,12 @@ public final class JsonUtil {
             return defaultValue;
         }
         Object value = map.get(key);
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
+        if (value instanceof Number number) {
+            return number.longValue();
         }
-        if (value instanceof String) {
+        if (value instanceof String string) {
             try {
-                return Long.parseLong((String) value);
+                return Long.parseLong(string);
             } catch (NumberFormatException e) {
                 return defaultValue;
             }
@@ -206,11 +206,11 @@ public final class JsonUtil {
             return defaultValue;
         }
         Object value = map.get(key);
-        if (value instanceof Boolean) {
-            return (Boolean) value;
+        if (value instanceof Boolean boolean1) {
+            return boolean1;
         }
-        if (value instanceof String) {
-            return Boolean.parseBoolean((String) value);
+        if (value instanceof String string) {
+            return Boolean.parseBoolean(string);
         }
         return defaultValue;
     }
