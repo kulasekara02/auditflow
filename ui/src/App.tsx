@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react'
+import { useState, createContext, useContext, ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Activity, Key, Bell, LogOut, Menu, X, LayoutDashboard } from 'lucide-react'
 import Login from './pages/Login'

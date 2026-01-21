@@ -11,7 +11,7 @@ export default function Alerts() {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [levelFilter, setLevelFilter] = useState<string>('');
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
-  const [updating, setUpdating] = useState<number | null>(null);
+  const [updating, setUpdating] = useState<string | null>(null);
   const pageSize = 15;
 
   const fetchAlerts = useCallback(async () => {
@@ -25,9 +25,9 @@ export default function Alerts() {
       if (statusFilter) params.status = statusFilter;
       if (levelFilter) params.level = levelFilter;
 
-      const data = await alertsApi.list(params);
-      setAlerts(data.alerts || []);
-      setTotalPages(Math.max(1, Math.ceil((data.total || 0) / pageSize)));
+      const response = await alertsApi.list(params);
+      setAlerts(response.data.items || []);
+      setTotalPages(Math.max(1, Math.ceil((response.data.total || 0) / pageSize)));
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to fetch alerts';
       setError(errorMsg);
@@ -40,7 +40,7 @@ export default function Alerts() {
     fetchAlerts();
   }, [fetchAlerts]);
 
-  const updateAlertStatus = async (alertId: number, status: 'acknowledged' | 'resolved') => {
+  const updateAlertStatus = async (alertId: string, status: 'acknowledged' | 'resolved') => {
     setUpdating(alertId);
     try {
       await alertsApi.updateStatus(alertId, status);
@@ -77,11 +77,11 @@ export default function Alerts() {
 
   const getStatusBadge = (status: string) => {
     const colours: Record<string, string> = {
-      new: 'bg-purple-100 text-purple-800 border-purple-200',
+      open: 'bg-purple-100 text-purple-800 border-purple-200',
       acknowledged: 'bg-blue-100 text-blue-800 border-blue-200',
       resolved: 'bg-green-100 text-green-800 border-green-200'
     };
-    return colours[status] || colours.new;
+    return colours[status] || colours.open;
   };
 
   const getStatusIcon = (status: string) => {
@@ -146,7 +146,7 @@ export default function Alerts() {
               className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">All</option>
-              <option value="new">New</option>
+              <option value="open">Open</option>
               <option value="acknowledged">Acknowledged</option>
               <option value="resolved">Resolved</option>
             </select>
@@ -219,7 +219,7 @@ export default function Alerts() {
                               {alert.status}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{alert.message}</p>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{alert.description || alert.title}</p>
                           <div className="flex items-centre gap-4 mt-2">
                             <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium border ${getLevelBadge(alert.level)}`}>
                               {alert.level}
@@ -289,7 +289,7 @@ export default function Alerts() {
 
                   <div>
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Message</label>
-                    <p className="mt-1 text-sm text-gray-700">{selectedAlert.message}</p>
+                    <p className="mt-1 text-sm text-gray-700">{selectedAlert.description || selectedAlert.title}</p>
                   </div>
 
                   <div>
@@ -307,7 +307,7 @@ export default function Alerts() {
                   {/* Actions */}
                   {selectedAlert.status !== 'resolved' && (
                     <div className="pt-4 border-t border-gray-200 space-y-2">
-                      {selectedAlert.status === 'new' && (
+                      {selectedAlert.status === 'open' && (
                         <button
                           onClick={() => updateAlertStatus(selectedAlert.id, 'acknowledged')}
                           disabled={updating === selectedAlert.id}
