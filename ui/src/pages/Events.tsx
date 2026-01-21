@@ -29,20 +29,19 @@ export default function Events() {
       if (filters.severity) params.severity = filters.severity;
       if (filters.source) params.source = filters.source;
       
-      const data = await eventsApi.list(params);
-      let filteredEvents = data.events || [];
+      const response = await eventsApi.list(params);
+      let filteredEvents = response.data.items || [];
       
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
-        filteredEvents = filteredEvents.filter(e => 
+        filteredEvents = filteredEvents.filter((e: Event) => 
           e.event_type.toLowerCase().includes(searchLower) ||
-          e.source.toLowerCase().includes(searchLower) ||
-          (e.message && e.message.toLowerCase().includes(searchLower))
+          e.source.toLowerCase().includes(searchLower)
         );
       }
       
       setEvents(filteredEvents);
-      setTotalPages(Math.max(1, Math.ceil((data.total || filteredEvents.length) / pageSize)));
+      setTotalPages(Math.max(1, Math.ceil((response.data.total || filteredEvents.length) / pageSize)));
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to fetch events';
       setError(errorMsg);
@@ -256,8 +255,8 @@ export default function Events() {
                         <span className="text-sm text-gray-600">{event.source}</span>
                       </td>
                       <td className="px-6 py-4 max-w-xs">
-                        <span className="text-sm text-gray-600 truncate block" title={event.message || ''}>
-                          {event.message || '-'}
+                        <span className="text-sm text-gray-600 truncate block" title={String(event.payload?.message || '')}>
+                          {String(event.payload?.message || '-')}
                         </span>
                       </td>
                       <td className="px-6 py-4">
